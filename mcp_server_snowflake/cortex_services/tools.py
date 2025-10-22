@@ -177,6 +177,7 @@ async def query_cortex_analyst(
     snowflake_service,
     semantic_model: str,
     query: str,
+    is_execute_query: bool
 ) -> dict:
     """
     Query Snowflake Cortex Analyst service for natural language to SQL conversion.
@@ -195,6 +196,8 @@ async def query_cortex_analyst(
         - "MY_DB.MY_SCH.MY_SEMANTIC_VIEW"
     query : str
         Natural language query string to submit to Cortex Analyst
+    is_execute_query : bool
+        Flag of generated query is executing.
 
     Returns
     -------
@@ -365,9 +368,14 @@ def initialize_cortex_analyst_tool(server: FastMCP, snowflake_service):
                 str,
                 Field(description="Natural language query to submit to Cortex Analyst"),
             ],
+            is_execute_query: Annotated[
+                bool,
+                Field(description="Flag of generated query is executing.")
+            ]
         ):
             return query_cortex_analyst(
                 snowflake_service=snowflake_service,
                 semantic_model=semantic_model,
                 query=query,
+                is_execute_query=is_execute_query
             )

@@ -217,7 +217,7 @@ class SnowflakeResponse:
             return cur.fetchall()
 
     def parse_analyst_response(
-        self, response: requests.Response | dict, service, **kwargs
+        self, response: requests.Response | dict, service, is_execute_query: bool = False,**kwargs
     ) -> str:
         """
         Parse Cortex Analyst API response and execute any generated SQL.
@@ -248,10 +248,11 @@ class SnowflakeResponse:
 
             elif item.get("type") == "sql":
                 res["sql"] = item.get("statement", "")
-                if item.get("statement"):
-                    res["results"] = self.fetch_results(
-                        statement=res["sql"], service=service, **kwargs
-                    )
+                if execute_query:
+                    if item.get("statement"):
+                        res["results"] = self.fetch_results(
+                            statement=res["sql"], service=service, **kwargs
+                        )
         response = AnalystResponse(**res)
         return response.model_dump_json()
 
@@ -371,6 +372,7 @@ class SnowflakeResponse:
                 snowflake_service = kwargs.get("snowflake_service")
                 match api:
                     case "analyst":
+                        is_execute_query = kwargs.get("is_execute_query")
                         parsed = self.parse_analyst_response(
                             response=raw_sse, service=snowflake_service
                         )
