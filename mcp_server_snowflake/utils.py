@@ -248,6 +248,9 @@ class SnowflakeResponse:
 
             elif item.get("type") == "sql":
                 res["sql"] = item.get("statement", "")
+                print("==========================")
+                print(f"is_execute_query: {is_execute_query}")
+                print("==========================")
                 if execute_query:
                     if item.get("statement"):
                         res["results"] = self.fetch_results(
