@@ -248,7 +248,11 @@ class SnowflakeResponse:
 
             elif item.get("type") == "sql":
                 res["sql"] = item.get("statement", "")
-
+                if is_execute_query:
+                    if item.get("statement"):
+                        res["results"] = self.fetch_results(
+                            statement=res["sql"], service=service, **kwargs
+                        )
         response = AnalystResponse(**res)
         return response.model_dump_json()
 
@@ -368,9 +372,9 @@ class SnowflakeResponse:
                 snowflake_service = kwargs.get("snowflake_service")
                 match api:
                     case "analyst":
-                        is_execute_query = kwargs.get("is_execute_query")
+                        is_execute_query = kwargs.get("is_execute_query", False)
                         parsed = self.parse_analyst_response(
-                            response=raw_sse, service=snowflake_service
+                            response=raw_sse, service=snowflake_service, is_execute_query=is_execute_query
                         )
                     case "search":
                         parsed = self.parse_search_response(response=raw_sse)
