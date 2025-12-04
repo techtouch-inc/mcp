@@ -35,15 +35,29 @@ def run_query(statement: str, snowflake_service, query_tag: dict = None):
         If connection fails or SQL execution encounters an error
     """
     try:
-        with snowflake_service.get_connection(
-            use_dict_cursor=True,
-            session_parameters=snowflake_service.get_query_tag_param(custom_tag=query_tag),
-        ) as (
-            con,
-            cur,
-        ):
-            cur.execute(statement)
-            return cur.fetchall()
+        # If custom query_tag is provided, create a dedicated connection with that tag
+        if query_tag is not None:
+            from snowflake.connector import DictCursor
+            session_parameters = snowflake_service.get_query_tag_param(custom_tag=query_tag)
+            connection = snowflake_service._get_persistent_connection(
+                session_parameters=session_parameters
+            )
+            try:
+                with connection.cursor(DictCursor) as cur:
+                    cur.execute(statement)
+                    return cur.fetchall()
+            finally:
+                connection.close()
+        else:
+            # Use the existing persistent connection for default query tag
+            with snowflake_service.get_connection(
+                use_dict_cursor=True,
+            ) as (
+                con,
+                cur,
+            ):
+                cur.execute(statement)
+                return cur.fetchall()
     except Exception as e:
         raise SnowflakeException(
             tool="query_manager",
