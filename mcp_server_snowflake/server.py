@@ -413,7 +413,8 @@ class SnowflakeService:
 
             # Set the query tag in default session parameters
             session_parameters = {"QUERY_TAG": json.dumps(query_tag)}
-
+            print(query_tag)
+            exit()
             return session_parameters
         else:
             return None
