@@ -1,4 +1,4 @@
-from typing import Annotated
+from typing import Annotated, Optional
 
 import sqlglot
 from fastmcp import FastMCP
@@ -8,7 +8,7 @@ from mcp_server_snowflake.query_manager.prompts import query_tool_prompt
 from mcp_server_snowflake.utils import SnowflakeException
 
 
-def run_query(statement: str, snowflake_service):
+def run_query(statement: str, snowflake_service, query_tag: dict = None):
     """
     Execute SQL statement and fetch all results using Snowflake connector.
 
@@ -21,6 +21,8 @@ def run_query(statement: str, snowflake_service):
         SQL statement to execute
     snowflake_service : SnowflakeService
         The Snowflake service instance to use for connection
+    query_tag : dict, optional
+        Custom query tag to be merged with default tags
 
     Returns
     -------
@@ -35,7 +37,7 @@ def run_query(statement: str, snowflake_service):
     try:
         with snowflake_service.get_connection(
             use_dict_cursor=True,
-            session_parameters=snowflake_service.get_query_tag_param(),
+            session_parameters=snowflake_service.get_query_tag_param(custom_tag=query_tag),
         ) as (
             con,
             cur,
@@ -60,8 +62,12 @@ def initialize_query_manager_tool(server: FastMCP, snowflake_service):
             str,
             Field(description="SQL query to execute"),
         ],
+        query_tag: Annotated[
+            Optional[dict],
+            Field(description="Optional custom query tag to be merged with default tags. Example: {'user': 'alice', 'app': 'my_app'}"),
+        ] = None,
     ):
-        return run_query(statement, snowflake_service)
+        return run_query(statement, snowflake_service, query_tag)
 
 
 def get_statement_type(sql_string):

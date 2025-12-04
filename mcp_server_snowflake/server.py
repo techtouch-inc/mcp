@@ -381,18 +381,20 @@ class SnowflakeService:
 
     def get_query_tag_param(
         self,
+        custom_tag: Optional[Dict[str, Any]] = None,
     ) -> Optional[Dict[str, Any]] | None:
         """
         Get the query tag parameters for the Snowflake service.
 
         Parameters
         ----------
-        query_tag : dict[str, str], optional
-            Query tag dictionary
-        major_version : int, optional
-            Major version of the query tag
-        minor_version : int, optional
-            Minor version of the query tag
+        custom_tag : dict[str, Any], optional
+            Custom query tag dictionary to merge with default tags
+
+        Returns
+        -------
+        Optional[Dict[str, Any]]
+            Session parameters with merged query tag, or None if no tags configured
         """
         if self.query_tag is not None:
             query_tag = self.query_tag.copy()
@@ -404,6 +406,10 @@ class SnowflakeService:
                     "major": self.tag_major_version,
                     "minor": self.tag_minor_version,
                 }
+
+            # Merge custom tag if provided
+            if custom_tag is not None:
+                query_tag.update(custom_tag)
 
             # Set the query tag in default session parameters
             session_parameters = {"QUERY_TAG": json.dumps(query_tag)}
