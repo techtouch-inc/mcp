@@ -227,14 +227,6 @@ class SnowflakeService:
         else:
             return self.connection.host
 
-    @staticmethod
-    def send_initial_query(connection: Any) -> None:
-        """
-        Send an initial query to the Snowflake service.
-        """
-        with connection.cursor() as cur:
-            cur.execute("SELECT 'MCP Server Snowflake'").fetchone()
-
     def _get_persistent_connection(
         self,
         session_parameters: Optional[Dict[str, Any]] = None,
@@ -298,9 +290,7 @@ class SnowflakeService:
                 session_parameters=session_parameters,
                 client_session_keep_alive=True,
             )
-            if connection:  # Send zero compute query to capture query tag
-                self.send_initial_query(connection)
-                return connection
+            return connection
         except Exception as e:
             logger.error(f"Error establishing persistent Snowflake connection: {e}")
             raise
