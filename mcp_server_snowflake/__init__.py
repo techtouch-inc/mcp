@@ -10,13 +10,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# Suppress Pydantic V2 deprecation warnings from third-party libraries before any imports
+# Suppress all warnings from third-party libraries before any imports
 import warnings
-warnings.filterwarnings("ignore", category=DeprecationWarning, module="pydantic")
-warnings.filterwarnings("ignore", category=DeprecationWarning, module="pydantic.*")
-warnings.filterwarnings("ignore", category=DeprecationWarning, module="snowflake.core.*")
-warnings.filterwarnings("ignore", message=".*PydanticDeprecatedSince20.*")
-warnings.filterwarnings("ignore", message=".*class-based.*config.*deprecated.*")
+warnings.simplefilter("ignore")
 
 """
 Snowflake MCP Server Package.
