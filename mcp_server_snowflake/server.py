@@ -260,13 +260,9 @@ class SnowflakeService:
             A Snowflake connection object
         """
         try:
-            query_tag_params = self.get_query_tag_param()
-
-            if session_parameters is not None:
-                if query_tag_params:
-                    session_parameters.update(query_tag_params)
-            else:
-                session_parameters = query_tag_params
+            # If session_parameters is not provided, use default query tag
+            if session_parameters is None:
+                session_parameters = self.get_query_tag_param()
 
             # Get connection parameters based on environment
             if self._is_spcs_container:
