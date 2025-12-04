@@ -410,11 +410,11 @@ class SnowflakeService:
             # Merge custom tag if provided
             if custom_tag is not None:
                 query_tag.update(custom_tag)
+                exit()
+
 
             # Set the query tag in default session parameters
             session_parameters = {"QUERY_TAG": json.dumps(query_tag)}
-            print(query_tag)
-            exit()
             return session_parameters
         else:
             return None
