@@ -39,8 +39,10 @@ def run_query(statement: str, snowflake_service, query_tag: dict = None):
         if query_tag is not None:
             from snowflake.connector import DictCursor
             session_parameters = snowflake_service.get_query_tag_param(custom_tag=query_tag)
+            # Create a new connection without connection_name to avoid session reuse
             connection = snowflake_service._get_persistent_connection(
-                session_parameters=session_parameters
+                session_parameters=session_parameters,
+                use_connection_name=False,
             )
             try:
                 with connection.cursor(DictCursor) as cur:

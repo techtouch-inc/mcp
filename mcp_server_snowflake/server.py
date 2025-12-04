@@ -238,6 +238,7 @@ class SnowflakeService:
     def _get_persistent_connection(
         self,
         session_parameters: Optional[Dict[str, Any]] = None,
+        use_connection_name: bool = True,
     ) -> Any:
         """
         Get a persistent Snowflake connection.
@@ -249,10 +250,9 @@ class SnowflakeService:
         ----------
         session_parameters : dict, optional
             Additional session parameters to add to connection
-        major_version : int, optional
-            Major version of the query tag
-        minor_version : int, optional
-            Minor version of the query tag
+        use_connection_name : bool, default=True
+            Whether to use connection_name parameter. Set to False to create
+            a truly new session instead of reusing an existing one.
 
         Returns
         -------
@@ -284,11 +284,14 @@ class SnowflakeService:
             # so we cannot rely on the connection to infer default connection name.
             # So instead, if no explicit values passed via CLI, we replicate the same logic here
             if not connection_params:
-                connection_params = {
-                    "connection_name": os.getenv(
-                        "SNOWFLAKE_DEFAULT_CONNECTION_NAME", "default"
-                    ),
-                }
+                if use_connection_name:
+                    connection_params = {
+                        "connection_name": os.getenv(
+                            "SNOWFLAKE_DEFAULT_CONNECTION_NAME", "default"
+                        ),
+                    }
+                else:
+                    connection_params = {}
 
             connection = connect(
                 **connection_params,
