@@ -42,5 +42,5 @@ build-backend = "hatchling.build"
 packages = ["mcp_server_snowflake"]
 
 [project.scripts]
-mcp-server-snowflake = "mcp_server_snowflake:main"
-snowflake-labs-mcp = "mcp_server_snowflake:main"
+mcp-server-snowflake = "mcp_server_snowflake.__main__:main"
+snowflake-labs-mcp = "mcp_server_snowflake.__main__:main"
