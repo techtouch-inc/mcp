@@ -12,12 +12,17 @@
 import argparse
 import json
 import os
+import warnings
 from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager, contextmanager
 from pathlib import Path
 from typing import Any, Dict, Generator, Literal, Optional, Tuple, cast
 
 import yaml
+
+# Suppress Pydantic V2 deprecation warnings from third-party libraries
+warnings.filterwarnings("ignore", category=DeprecationWarning, module="pydantic")
+warnings.filterwarnings("ignore", message=".*PydanticDeprecatedSince20.*")
 from fastmcp import FastMCP
 from fastmcp.utilities.logging import get_logger
 from snowflake.connector import DictCursor, connect
@@ -227,14 +232,6 @@ class SnowflakeService:
         else:
             return self.connection.host
 
-    @staticmethod
-    def send_initial_query(connection: Any) -> None:
-        """
-        Send an initial query to the Snowflake service.
-        """
-        with connection.cursor() as cur:
-            cur.execute("SELECT 'MCP Server Snowflake'").fetchone()
-
     def _get_persistent_connection(
         self,
         session_parameters: Optional[Dict[str, Any]] = None,
@@ -298,9 +295,7 @@ class SnowflakeService:
                 session_parameters=session_parameters,
                 client_session_keep_alive=True,
             )
-            if connection:  # Send zero compute query to capture query tag
-                self.send_initial_query(connection)
-                return connection
+            return connection
         except Exception as e:
             logger.error(f"Error establishing persistent Snowflake connection: {e}")
             raise
