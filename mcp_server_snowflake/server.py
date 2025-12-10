@@ -231,6 +231,7 @@ class SnowflakeService:
         self,
         session_parameters: Optional[Dict[str, Any]] = None,
         use_connection_name: bool = True,
+        warehouse: Optional[str] = None,
     ) -> Any:
         """
         Get a persistent Snowflake connection.
@@ -245,6 +246,9 @@ class SnowflakeService:
         use_connection_name : bool, default=True
             Whether to use connection_name parameter. Set to False to create
             a truly new session instead of reusing an existing one.
+        warehouse : str, optional
+            Warehouse name to use for this connection. If specified, overrides
+            the default warehouse configured at service level.
 
         Returns
         -------
@@ -284,6 +288,10 @@ class SnowflakeService:
                     }
                 else:
                     connection_params = {}
+
+            # Override warehouse if specified
+            if warehouse is not None:
+                connection_params['warehouse'] = warehouse
 
             connection = connect(
                 **connection_params,
