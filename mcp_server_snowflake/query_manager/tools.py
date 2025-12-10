@@ -8,7 +8,7 @@ from mcp_server_snowflake.query_manager.prompts import query_tool_prompt
 from mcp_server_snowflake.utils import SnowflakeException
 
 
-def run_query(statement: str, snowflake_service, query_tag: dict = None):
+def run_query(statement: str, snowflake_service, query_tag: dict = None, warehouse: str = None):
     """
     Execute SQL statement and fetch all results using Snowflake connector.
 
@@ -23,6 +23,8 @@ def run_query(statement: str, snowflake_service, query_tag: dict = None):
         The Snowflake service instance to use for connection
     query_tag : dict, optional
         Custom query tag to be merged with default tags
+    warehouse : str, optional
+        Warehouse name to use for this query. If not specified, uses default warehouse.
 
     Returns
     -------
@@ -35,14 +37,16 @@ def run_query(statement: str, snowflake_service, query_tag: dict = None):
         If connection fails or SQL execution encounters an error
     """
     try:
-        # If custom query_tag is provided, create a dedicated connection with that tag
-        if query_tag is not None:
+        # If custom warehouse or query_tag is provided, create a dedicated connection
+        if warehouse is not None or query_tag is not None:
             from snowflake.connector import DictCursor
+
             session_parameters = snowflake_service.get_query_tag_param(custom_tag=query_tag)
             # Create a new connection without connection_name to avoid session reuse
             connection = snowflake_service._get_persistent_connection(
                 session_parameters=session_parameters,
                 use_connection_name=False,
+                warehouse=warehouse,
             )
             try:
                 with connection.cursor(DictCursor) as cur:
@@ -51,7 +55,7 @@ def run_query(statement: str, snowflake_service, query_tag: dict = None):
             finally:
                 connection.close()
         else:
-            # Use the existing persistent connection for default query tag
+            # Use the existing persistent connection for default behavior
             with snowflake_service.get_connection(
                 use_dict_cursor=True,
             ) as (
@@ -61,9 +65,12 @@ def run_query(statement: str, snowflake_service, query_tag: dict = None):
                 cur.execute(statement)
                 return cur.fetchall()
     except Exception as e:
+        error_msg = f"Error executing query: {e}"
+        if warehouse:
+            error_msg += f" (using warehouse: {warehouse})"
         raise SnowflakeException(
             tool="query_manager",
-            message=f"Error executing query: {e}",
+            message=error_msg,
             status_code=500,
         )
 
@@ -82,8 +89,12 @@ def initialize_query_manager_tool(server: FastMCP, snowflake_service):
             Optional[dict],
             Field(description="Optional custom query tag to be merged with default tags. Example: {'user': 'alice', 'app': 'my_app'}"),
         ] = None,
+        warehouse: Annotated[
+            Optional[str],
+            Field(description="Optional warehouse name to use for this query. If not specified, uses the default warehouse configured at connection level."),
+        ] = None,
     ):
-        return run_query(statement, snowflake_service, query_tag)
+        return run_query(statement, snowflake_service, query_tag, warehouse)
 
 
 def get_statement_type(sql_string):
