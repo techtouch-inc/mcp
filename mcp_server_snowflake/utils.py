@@ -638,6 +638,12 @@ OAUTH_CLIENT_CREDENTIALS to use the OAuth 2.0 Client Credentials flow.
 
 If the value is not snowflake, the user and password parameters must be your login credentials for the IdP.""",
         ],
+        "workload_identity_provider": [
+            "--workload-identity-provider",
+            os.getenv("SNOWFLAKE_WORKLOAD_IDENTITY_PROVIDER"),
+            """Workload Identity Provider used when authenticator is WORKLOAD_IDENTITY.
+Valid values: AWS, AZURE, GCP, OIDC. Required when --authenticator=WORKLOAD_IDENTITY for the snowflake-connector-python to know which cloud provider to fetch the attestation from.""",
+        ],
         "connection_name": [
             "--connection-name",
             None,
